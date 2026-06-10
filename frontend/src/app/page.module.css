@@ -1,0 +1,172 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.header {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modeToggle {
+  display: flex;
+  gap: 8px;
+  background: var(--surface-hover);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.modeBtn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modeBtn.active {
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.timeline {
+  width: 400px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.timelineCollapsed {
+  width: 60px;
+}
+
+.dayTabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.dayTabs::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.tabBtn {
+  padding: 12px 16px;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.tabBtn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.legs {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.legCard {
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.legCard:hover {
+  border-color: var(--text-secondary);
+}
+
+.mapContainer {
+  flex: 1;
+  position: relative;
+}
+
+.maximizeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.briefingOverlay {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 600px;
+  z-index: 10;
+}
+
+.stepperContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 24px;
+  background: linear-gradient(to top, var(--background) 0%, transparent 100%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doneBtn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doneBtn:hover {
+  background: var(--primary-hover);
+}

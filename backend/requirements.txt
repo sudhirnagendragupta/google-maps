@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+anthropic
+mcp
+googlemaps
+google-auth
+google-api-python-client
+python-dotenv
