@@ -86,3 +86,8 @@ UI modes:
 
 ## 10. Portfolio framing
 Artifacts produced: The working app, public project page on guptasudhir.com, and a build diary blog post.
+
+## 11. Community Day Insights (June 2026)
+- **Agentic UI Toolkit**: Google introduced an Agentic UI Toolkit (https://developers.google.com/maps/ai/agentic-ui-toolkit). The app UI should leverage this for binding views to state changes and creating responsive interfaces that adapt to the backend orchestrator's state.
+- **Observability & Context Hygiene**: Best practices for Day Planner Agents emphasize task decomposition, strongly-typed fields, and keeping tool counts low (<20) to avoid tool bloat. This validates our design decision to keep the custom MCP to exactly one tool (`transit_route`).
+- **Maps as an Environment**: The paradigm shift is from Maps as a flat tool to an interactive environment for spatial reasoning, with Grounding Lite acting as the crucial link between the LLM and real-world context.
