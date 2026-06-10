@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { APIProvider } from "@vis.gl/react-google-maps";
+import { MapProvider } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,9 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <APIProvider apiKey={apiKey} onLoad={() => console.log('Maps API has loaded.')}>
+        <MapProvider apiKey={apiKey}>
           {children}
-        </APIProvider>
+        </MapProvider>
       </body>
     </html>
   );
