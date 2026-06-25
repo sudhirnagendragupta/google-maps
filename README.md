@@ -1,5 +1,21 @@
 # Journey Planner
 
+<p align="center">
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" /></a>
+  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="https://anthropic.com"><img src="https://img.shields.io/badge/Claude%20Orchestrator-D97706?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude Orchestrator" /></a>
+  <a href="https://developers.google.com/maps"><img src="https://img.shields.io/badge/Google%20Maps%20Platform-4285F4?style=for-the-badge&logo=googlemaps&logoColor=white" alt="Google Maps Platform" /></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Status-Active_POC-orange?style=flat-square" alt="Status: Active POC" />
+  <a href="file:///Users/sudhi/Desktop/Projects/google-maps/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=flat-square" alt="PRs Welcome" /></a>
+</p>
+
+---
+
 *An agentic travel planner exploring Google's Maps Grounding Lite MCP with Claude as the orchestrator.*
 
 This repository is a proof-of-concept project built to experiment with hands-on learnings from the Google Maps Community Day (June 2026).
