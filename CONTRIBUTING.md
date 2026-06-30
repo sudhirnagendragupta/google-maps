@@ -50,7 +50,7 @@ To propose code changes:
 ---
 
 ## Running Local Verification Tests
-Before submitting backend agent changes, please run the diagnostic script to ensure the Claude orchestrator and Google Maps tools function correctly:
+Before submitting backend agent changes, please run the diagnostic script to ensure the Gemini orchestrator and Google Maps tools function correctly:
 ```bash
 cd backend
 source .venv/bin/activate

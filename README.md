@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" /></a>
   <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
-  <a href="https://anthropic.com"><img src="https://img.shields.io/badge/Claude%20Orchestrator-D97706?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude Orchestrator" /></a>
+  <a href="https://deepmind.google/technologies/gemini/"><img src="https://img.shields.io/badge/Gemini%20Orchestrator-8E75C2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini Orchestrator" /></a>
   <a href="https://developers.google.com/maps"><img src="https://img.shields.io/badge/Google%20Maps%20Platform-4285F4?style=for-the-badge&logo=googlemaps&logoColor=white" alt="Google Maps Platform" /></a>
 </p>
 
@@ -16,7 +16,7 @@
 
 ---
 
-*An agentic travel planner exploring Google's Maps Grounding Lite MCP with Claude as the orchestrator.*
+*An agentic travel planner exploring Google's Maps Grounding Lite MCP with Gemini 3.5 Flash as the orchestrator.*
 
 This repository is a proof-of-concept project built to experiment with hands-on learnings from the Google Maps Community Day (June 2026).
 
@@ -52,7 +52,7 @@ Instead of picking options from tedious dropdown menus, the plan is editable thr
 
 ## Technologies Leveraged
 This project acts as an integration playground for several cutting-edge AI and mapping technologies:
-1. **Anthropic Claude (Messages API):** Serves as the core reasoning orchestrator. Claude decides which tools to call, reasons over constraints, and handles the scoped iteration of the itinerary.
+1. **Google Gemini (Google GenAI API):** Serves as the core reasoning orchestrator. Gemini decides which tools to call, reasons over constraints, and handles the scoped iteration of the itinerary.
 2. **Google Maps Platform (Server & Client SDKs):**
    - **Maps JavaScript SDK (React):** For rendering the interactive map and custom pins dynamically.
    - **Directions & Geocoding APIs:** To compute real-time walking distances, routing times, and coordinates.
@@ -76,10 +76,10 @@ To get the Journey Planner working locally on your system, follow these setup an
 
 ### Step 1: Obtain API Keys
 
-#### 1. Anthropic API Key
-- Go to the [Anthropic Developer Console](https://console.anthropic.com/).
-- Create an account or sign in, navigate to **API Keys**, and generate a new secret key.
-- Save this key for backend configuration (needed for the Claude Orchestrator model).
+#### 1. Gemini API Key
+- Go to [Google AI Studio](https://aistudio.google.com/).
+- Click **Get API key** to generate a free secret key.
+- Save this key for backend configuration (needed for the Gemini Orchestrator model).
 
 #### 2. Google Cloud Platform (GCP) API Keys
 We highly recommend creating a **new, dedicated GCP project** specifically for this application. This makes it easy to track API usage/billing in isolation and allows you to clean up all resources instantly by deleting the project when finished.
@@ -104,8 +104,8 @@ Create environment configuration files in both the `frontend` and `backend` dire
 #### Backend Environment Configuration
 Create a `.env` file at `backend/.env`:
 ```env
-# Anthropic API Key (required for agent orchestration)
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# Gemini API Key (required for agent orchestration)
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Google Maps Platform - Server Key (Unrestricted/Server-restricted key)
 GOOGLE_MAPS_API_KEY=your_backend_maps_key_here
@@ -181,6 +181,7 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_frontend_maps_key_here
 | **June 10, 2026** | Scaffold the application codebase (FastAPI backend + Next.js frontend), integrate Google Maps client-side SDK, and outline initial specifications. | Encountered browser console warnings when using `AdvancedMarkerElement` because it requires a Map ID configured via GCP styles. Dealt with hydration and client-context mismatches under the Next.js App Router structure. | Initialized both Next.js and FastAPI projects. Replaced advanced markers with standard `<Marker>` components pointing to public yellow/blue pin URLs to sidestep Map ID restrictions. Rendered the interactive map component successfully. |
 | **June 11, 2026** | Document the application architecture, grounding patterns, and plan the AI orchestration flow based on the Google Maps Innovators Community Day. | Discovered that backend GCP Python client calls reject API keys that have HTTP referrer restrictions set up for client browsers. | Outlined the maps grounding design and established a clean separation of keys (restricted browser key for client-side maps vs unrestricted/IP-restricted server key for backend geocoding/directions/places). |
 | **June 24, 2026** | Build the agent planning loop, manual accommodation input, and chat interface. Debug legacy model name issues and fix the empty-itinerary bug (0 days, 0 stops). | Legacy Claude Sonnet v2 model IDs returned 404. Claude Opus 4.8 called `submit_itinerary` with an empty object `{}` due to the `max_tokens=4000` response limit truncating the huge JSON. Invalid marker key structures caused post-loop validation crashes. | Switched to flagship `claude-opus-4-8`. Split GCP keys (frontend browser key vs backend web key). Refactored `submit_itinerary` to accept a flat `itinerary_json` parameter and increased response headroom to `8000` tokens. Added internal validation checks inside the loop so Claude self-corrects invalid payloads before finalization. Completed a fully working, beautiful interactive travel app. |
+| **June 30, 2026** | Refactor the orchestrator model from Anthropic Claude to Google Gemini 3.5 Flash. | Found that stringifying a huge JSON payload for tool parameters (`itinerary_json`) was causing Gemini to generate plain-text itineraries rather than invoking the tool. | Replaced `anthropic` SDK with `google-genai` Python SDK. Refactored the `submit_itinerary` tool signature to accept structured arguments (`List[Day]`, `List[Marker]`) directly instead of a JSON string. Forced tool calls using `mode="ANY"` in `tool_config` to ensure the agent always calls `submit_itinerary` when finished. Verified successful execution of the agent loop with live Google Maps API. |
 
 ---
 

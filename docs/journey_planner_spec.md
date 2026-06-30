@@ -1,6 +1,6 @@
 # Journey Planner — Project Knowledge Document
 
-*An agentic travel planner exploring Google's Maps Grounding Lite MCP with Claude as the orchestrator*
+*An agentic travel planner exploring Google's Maps Grounding Lite MCP with Gemini as the orchestrator*
 
 **Status:** Active build — proof of concept · **Started:** May 2026 · **Target demo:** Personal use on SF trip (May 23–30, 2026)
 
@@ -21,8 +21,8 @@ Three things happening at once made this the right thing to build right now:
 
 The system has three parts, each with a clearly bounded role:
 
-### 3.1 Claude (orchestrator)
-Anthropic's Messages API, called from a small FastAPI backend. Claude does the reasoning work: decides tool calls, reasons over constraints, writes briefing prose, and handles scoped iteration.
+### 3.1 Gemini (orchestrator)
+Google's Gemini 3.5 Flash API, called from a small FastAPI backend. Gemini does the reasoning work: decides tool calls, reasons over constraints, writes briefing prose, and handles scoped iteration.
 
 ### 3.2 Google Maps APIs (grounding environment)
 Backend wrapper calling Google Maps Platform APIs:
@@ -31,7 +31,7 @@ Backend wrapper calling Google Maps Platform APIs:
 - `compute_route`: Computes distances and walking durations.
 
 ### 3.3 Frontend
-A mobile-first web app (Next.js) consuming Claude's structured plan output and rendering it with the Google Maps JS SDK. 
+A mobile-first web app (Next.js) consuming Gemini's structured plan output and rendering it with the Google Maps JS SDK. 
 UI modes:
 - **Plan view:** Day-by-day editing surface (timeline + map + briefing card). Includes a manual onboarding setup screen and an edit hotel dialog.
 - **Today view:** In-trip execution stepper. One leg at a time, manual advance.
@@ -46,7 +46,7 @@ UI modes:
 
 ## 5. What I expect to learn
 - Does manual entry provide a better onboarding experience for a demo/portfolio than OAuth?
-- Does Claude-mediated iteration beat searching Google Maps directly?
+- Does Gemini-mediated iteration beat searching Google Maps directly?
 - Does shared state beat the separate-apps approach?
 
 ## 6. What I'm cutting from V1
@@ -58,14 +58,14 @@ UI modes:
 - Offline mode
 
 ## 7. Build plan
-- **Days 1–2:** Wire Google Maps APIs and Claude API from backend. Terminal testing.
+- **Days 1–2:** Wire Google Maps APIs and Gemini API from backend. Terminal testing.
 - **Days 3–4:** Build frontend with Maps SDK (Plan and Today views).
 - **Days 5–6:** Polish to demo quality, test on phone.
 - **May 23–30:** Use on actual trip.
 - **Week after:** Fix issues, write portfolio piece.
 
 ## 8. Tech stack
-- **LLM:** Claude (Anthropic Messages API)
+- **LLM:** Gemini (Google GenAI API)
 - **Map APIs:** Google Maps Directions, Geocoding, and Places APIs
 - **Backend:** Python with FastAPI
 - **Frontend:** Next.js (mobile-first)

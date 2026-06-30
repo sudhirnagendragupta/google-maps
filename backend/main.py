@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 import os
 import json
 import googlemaps
-import anthropic
+from google import genai
+from google.genai import types
 
 # Load environment variables
 load_dotenv()
@@ -29,9 +30,9 @@ gmaps = googlemaps.Client(
     requests_kwargs={"headers": {"Referer": "http://localhost:3000"}}
 ) if maps_key else None
 
-# Initialize Anthropic Client
-anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-anthropic_client = anthropic.Anthropic(api_key=anthropic_key) if anthropic_key else None
+# Initialize Gemini Client
+gemini_key = os.getenv("GEMINI_API_KEY")
+gemini_client = genai.Client(api_key=gemini_key) if gemini_key else None
 
 # Pydantic Schemas
 class Coords(BaseModel):
@@ -79,6 +80,11 @@ class PlanResponse(BaseModel):
 
 # Google Maps helper tools (direct API execution, raising exceptions on failure)
 def geocode_address(address: str) -> Dict[str, Any]:
+    """Geocode a text address, landmark, or hotel name into latitude and longitude coordinates.
+    
+    Args:
+        address: The street address, hotel name, or landmark to geocode.
+    """
     if not gmaps:
         raise ValueError("Google Maps API key not configured in backend .env")
     res = gmaps.geocode(address)
@@ -88,6 +94,13 @@ def geocode_address(address: str) -> Dict[str, Any]:
     raise ValueError(f"Address could not be geocoded: {address}")
 
 def search_places(query: str, location: Optional[str] = None, radius: int = 1500) -> List[Dict[str, Any]]:
+    """Search for places (e.g. restaurants, sights, parks, cafes) near a location using Google Places API.
+    
+    Args:
+        query: Search term (e.g., 'Tadich Grill', 'sushi near Union Square').
+        location: Optional center coordinate as 'lat,lng'. Highly recommended to pass the accommodation coordinates here to find items near the hotel.
+        radius: Optional search radius in meters (default is 1500).
+    """
     if not gmaps:
         raise ValueError("Google Maps API key not configured in backend .env")
     loc_bias = None
@@ -111,6 +124,13 @@ def search_places(query: str, location: Optional[str] = None, radius: int = 1500
     return results
 
 def compute_route(origin: str, destination: str, mode: str = "walking") -> Dict[str, Any]:
+    """Compute a route between two locations using Google Maps Directions API to find walking/driving distance and duration.
+    
+    Args:
+        origin: Origin address, place name, or 'lat,lng' coordinates.
+        destination: Destination address, place name, or 'lat,lng' coordinates.
+        mode: Mode of transit (driving, walking, bicycling, or transit). Default is walking.
+    """
     if not gmaps:
         raise ValueError("Google Maps API key not configured in backend .env")
     if mode not in ["driving", "walking", "bicycling", "transit"]:
@@ -128,12 +148,23 @@ def compute_route(origin: str, destination: str, mode: str = "walking") -> Dict[
         }
     raise ValueError(f"No routes found between {origin} and {destination}")
 
+def submit_itinerary(itinerary: List[Day], markers: List[Marker], reply: str) -> Dict[str, Any]:
+    """Submit the finalized daily itinerary and map markers.
+    
+    Args:
+        itinerary: A list of days representing the daily itinerary.
+        markers: A list of map markers including the accommodation and stops.
+        reply: A detailed conversational summary.
+    """
+    # This is a schema holder for the tool. The actual validation is handled in the agent loop.
+    return {"status": "success"}
+
 @app.get("/")
 def read_root():
     return {
         "message": "Journey Planner Backend is running",
         "maps_configured": gmaps is not None,
-        "anthropic_configured": anthropic_client is not None
+        "gemini_configured": gemini_client is not None
     }
 
 @app.get("/health")
@@ -142,8 +173,8 @@ def health_check():
 
 @app.post("/api/plan", response_model=PlanResponse)
 def generate_or_update_plan(request: PlanRequest):
-    if not anthropic_client:
-        raise HTTPException(status_code=500, detail="Anthropic client not initialized. Check your backend .env")
+    if not gemini_client:
+        raise HTTPException(status_code=500, detail="Gemini client not initialized. Check your backend .env")
     
     trip = request.trip_details
     
@@ -155,83 +186,6 @@ def generate_or_update_plan(request: PlanRequest):
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Failed to geocode accommodation address: {str(e)}")
         
-    # Define tools schema for Claude
-    tools = [
-        {
-            "name": "geocode_address",
-            "description": "Geocode a text address, landmark, or hotel name into latitude and longitude coordinates.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "address": {
-                        "type": "string",
-                        "description": "The street address, hotel name, or landmark to geocode."
-                    }
-                },
-                "required": ["address"]
-            }
-        },
-        {
-            "name": "search_places",
-            "description": "Search for places (e.g. restaurants, sights, parks, cafes) near a location using Google Places API.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Search term (e.g., 'Tadich Grill', 'sushi near Union Square')."
-                    },
-                    "location": {
-                        "type": "string",
-                        "description": "Optional: center coordinate as 'lat,lng'. Highly recommended to pass the accommodation coordinates here to find items near the hotel."
-                    },
-                    "radius": {
-                        "type": "integer",
-                        "description": "Optional: search radius in meters (default is 1500)."
-                    }
-                },
-                "required": ["query"]
-            }
-        },
-        {
-            "name": "compute_route",
-            "description": "Compute a route between two locations using Google Maps Directions API to find walking/driving distance and duration.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "origin": {
-                        "type": "string",
-                        "description": "Origin address, place name, or 'lat,lng' coordinates."
-                    },
-                    "destination": {
-                        "type": "string",
-                        "description": "Destination address, place name, or 'lat,lng' coordinates."
-                    },
-                    "mode": {
-                        "type": "string",
-                        "enum": ["driving", "walking", "bicycling", "transit"],
-                        "description": "Mode of transit (default: walking)."
-                    }
-                },
-                "required": ["origin", "destination"]
-            }
-        },
-        {
-            "name": "submit_itinerary",
-            "description": "Submit the finalized daily itinerary and map markers. Input MUST be a valid JSON-encoded string in the 'itinerary_json' parameter.",
-            "input_schema": {
-                "type": "object",
-                "properties": {
-                    "itinerary_json": {
-                        "type": "string",
-                        "description": "Serialized JSON string containing 'itinerary', 'markers', and 'reply' fields."
-                    }
-                },
-                "required": ["itinerary_json"]
-            }
-        }
-    ]
-
     system_prompt = f"""You are Antigravity, a premium agentic travel planner.
 Your job is to generate or edit a day-by-day travel plan based on the user's manual inputs and instructions.
 
@@ -253,63 +207,73 @@ INSTRUCTIONS FOR THE PLANNER:
 6. When the user asks to modify an existing itinerary, review the current itinerary, execute tools to find options near the hotel or current stop, calculate the routes, and call `submit_itinerary` with the updated JSON.
 7. Be conversational and explain why you structured the itinerary the way you did in your final `reply`.
 8. API RESILIENCE: If any tool call (like `search_places` or `compute_route`) returns an error (e.g. REQUEST_DENIED), do not loop or retry the same call. Instead, proceed with the planning using reasonable geographic estimates, complete the itinerary, and mention a warning in your final reply that some Google Maps services are currently propagating/unauthorized.
-9. MANDATORY SUBMISSION FORMAT: When calling `submit_itinerary`, you MUST supply a single parameter `itinerary_json` containing a serialized JSON string with the exact fields:
+9. MANDATORY SUBMISSION FORMAT: You MUST call `submit_itinerary` as the final step to submit your travel plan. You must call it with the following structured parameters (do not wrap them in a JSON string, pass them directly):
    - `itinerary`: A list of days (each with `id`, `label`, and a list of `legs`). Each leg must have `id`, `title`, `time`, `duration`, `location`, `coords` (with `lat` and `lng`), `description`, and `transport`.
    - `markers`: A list of markers including the hotel (type: "accommodation") and stops (type: "stop").
    - `reply`: A detailed conversational summary.
-   DO NOT submit an empty object {{}}. If you do, it will fail validation.
+   DO NOT submit empty lists/objects. You are NOT allowed to reply only in plain text; a call to `submit_itinerary` is strictly required.
 10. CONCISENESS GUIDELINE: Keep leg descriptions brief (under 15 words) and addresses short to ensure the final payload does not get truncated.
 
 CURRENT ITINERARY:
 {json.dumps(request.current_itinerary, default=lambda o: o.__dict__) if request.current_itinerary else "None (Generate a brand new itinerary starting with the accommodation as home base)"}
 """
 
-    messages = [{"role": "user", "content": request.query}]
+    messages = [
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=request.query)]
+        )
+    ]
     
     # Tool execution loop
     max_steps = 15
     step = 0
-    
     final_output = None
     
     while step < max_steps:
         step += 1
         try:
-            response = anthropic_client.messages.create(
-                model="claude-opus-4-8",
-                max_tokens=8000,
-                system=system_prompt,
-                messages=messages,
-                tools=tools
+            response = gemini_client.models.generate_content(
+                model="gemini-3.5-flash",
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    tools=[geocode_address, search_places, compute_route, submit_itinerary],
+                    temperature=0.0,
+                    tool_config=types.ToolConfig(
+                        function_calling_config=types.FunctionCallingConfig(
+                            mode="ANY",
+                        )
+                    ),
+                )
             )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Claude API Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Gemini API Error: {str(e)}")
         
-        # Check if Claude wants to use tools
-        tool_calls = [c for c in response.content if c.type == "tool_use"]
+        # Check if Gemini wants to call tools
+        function_calls = response.function_calls
         
         # Print assistant text
-        assistant_text = "".join([c.text for c in response.content if c.type == "text"])
+        assistant_text = response.text
         if assistant_text:
             print(f"Assistant: {assistant_text}")
             
-        # If no tool calls, Claude just replied in text. This shouldn't happen for final submission, but handle it.
-        if not tool_calls:
-            text_reply = "".join([c.text for c in response.content if c.type == "text"])
+        # If no tool calls, Gemini just replied in text. This shouldn't happen for final submission, but handle it.
+        if not function_calls:
             raise HTTPException(
                 status_code=500, 
-                detail=f"Claude completed without calling submit_itinerary. Response: {text_reply}"
+                detail=f"Gemini completed without calling submit_itinerary. Response: {assistant_text}"
             )
             
-        # Add Claude's response to the message history
-        messages.append({"role": "assistant", "content": response.content})
+        # Add Gemini's response to the message history
+        # response.candidates[0].content contains the model's parts
+        messages.append(response.candidates[0].content)
         
         # Execute tool calls
         tool_responses = []
-        for tc in tool_calls:
-            tool_name = tc.name
-            tool_input = tc.input
-            tool_use_id = tc.id
+        for fc in function_calls:
+            tool_name = fc.name
+            tool_input = fc.args
             
             print(f"Executing tool {tool_name} with input {tool_input}")
             
@@ -330,10 +294,8 @@ CURRENT ITINERARY:
                         mode=tool_input.get("mode", "walking")
                     )
                 elif tool_name == "submit_itinerary":
-                    # Parse and validate the JSON string parameter
-                    itinerary_json_str = tool_input.get("itinerary_json", "")
-                    parsed = json.loads(itinerary_json_str)
-                    
+                    # Inputs are passed directly as structured arguments for Gemini
+                    parsed = tool_input
                     iti = parsed.get("itinerary", [])
                     markers_list = parsed.get("markers", [])
                     reply_text = parsed.get("reply", "")
@@ -398,19 +360,20 @@ CURRENT ITINERARY:
             except Exception as e:
                 result = {"error": f"Failed to parse or validate: {str(e)}"}
                 
-            tool_responses.append({
-                "type": "tool_result",
-                "tool_use_id": tool_use_id,
-                "content": json.dumps(result)
-            })
+            tool_responses.append(
+                types.Part.from_function_response(
+                    name=tool_name,
+                    response={"result": result}
+                )
+            )
             
+        # Add tool responses to messages
+        messages.append(types.Content(role="tool", parts=tool_responses))
+        
         if final_output is not None:
             # submit_itinerary called and validated successfully
             break
             
-        # Add tool responses to messages
-        messages.append({"role": "user", "content": tool_responses})
-        
     if final_output is None:
         raise HTTPException(status_code=500, detail="Max agent steps exceeded without submitting itinerary.")
         

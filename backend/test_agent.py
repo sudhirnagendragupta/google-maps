@@ -14,7 +14,7 @@ req = PlanRequest(
 )
 
 try:
-    print("Invoking Claude agent and Google Maps tools...")
+    print("Invoking Gemini agent and Google Maps tools...")
     res = main.generate_or_update_plan(req)
     print("\n--- AGENT CALL SUCCESS ---")
     print(f"Reply:\n{res.reply}\n")

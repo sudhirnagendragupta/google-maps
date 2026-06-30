@@ -136,7 +136,7 @@ export default function Home() {
     }
 
     const steps = [
-      "Contacting Claude 4.8 Opus...",
+      "Contacting Gemini 3.5 Flash...",
       "Geocoding accommodation base...",
       "Searching local places of interest...",
       "Computing walking route distances...",
